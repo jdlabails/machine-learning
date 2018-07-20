@@ -64,50 +64,56 @@ class MainCommand extends Command
         $output->writeln([
             '',
             '********************************',
-            "Lets see how to park :",
+            "Lets see how to park ",
             '********************************',
         ]);
 
-        $nbMove = 0;
-        $loopAvoid = 0;
-        $moves = [];
-        $positions = [];
-        $badMoveAvoid = 0;
-        $actions = [];
-        $parking->initCarPosition();
-        while (!$parking->isParked() && $nbMove < 10000) {
+        $bestMoves = [];
+        $bestPositions = [];
 
-            // we try to avoid loop
-            $pos = $parking->getCarPosition();
-            $action = $parking->getBestMove();
-            if (isset($actions[$pos['X']][$pos['Y']][$pos['thetaIndex']][$action])) {
-                $loopAvoid++;
-                while ($action == $newAction = $parking->getActionByEgreedyPolicy(10)) {
+        for ($nbTry = 0; $nbTry < 10; $nbTry++) {
+            $nbMove = 0;
+            $loopAvoid = 0;
+            $moves = [];
+            $positions = [];
+            $badMoveAvoid = 0;
+            $actions = [];
+            $parking->initCarPosition();
+            while (!$parking->isParked() && $nbMove < 10000) {
+                // we try to avoid loop
+                $pos = $parking->getCarPosition();
+                $action = $parking->getBestMove();
+                if (isset($actions[$pos['X']][$pos['Y']][$pos['thetaIndex']][$action])) {
+                    $loopAvoid++;
+                    while ($action == $newAction = $parking->getActionByEgreedyPolicy(10)) {
+                    }
 
+                    $action = $newAction;
                 }
+                $actions[$pos['X']][$pos['Y']][$pos['thetaIndex']][$action] = true;
 
-                $action = $newAction;
+                if (!$parking->move($action)) {
+                    $badMoveAvoid++;
+                } else {
+                    $moves[] = $action;
+                    $positions[] = $parking->getCarPosition();
+                    $nbMove++;
+                }
             }
-            $actions[$pos['X']][$pos['Y']][$pos['thetaIndex']][$action] = true;
+            $output->writeln($nbTry . " - " . count($moves)." moves to get parked");
 
-            //echo "Action $action ==> ".json_encode($parking->getCarPosition()).PHP_EOL;
-            if (!$parking->move($action)) {
-                $badMoveAvoid++;
-            } else {
-//                echo "action : $action".PHP_EOL;
-//                print_r($parking->getCarPosition());
-                $moves[]=$action;
-                $positions[]=$parking->getCarPosition();
-                $nbMove++;
+            if ($nbTry == 0 || count($bestMoves) > count($moves)) {
+                $bestMoves = $moves;
+                $bestPositions = $positions;
             }
         }
 
         $fp = fopen(__DIR__.'/../../public/parkingMoves.js', 'w+');
-        fwrite($fp, 'var moves = '.json_encode($moves)."; \n");
-        fwrite($fp, 'var positions = '.json_encode($positions));
+        fwrite($fp, 'var moves = '.json_encode($bestMoves)."; \n");
+        fwrite($fp, 'var positions = '.json_encode($bestPositions));
         fclose($fp);
 
-        $output->writeln("$nbMove moves to get parked : " . json_encode($parking->getCarPosition()));
+        $output->writeln(count($bestMoves)." moves to get parked");
         $output->writeln('bad move : ' . $badMoveAvoid);
         $output->writeln('loop avoided : ' . $loopAvoid);
     }

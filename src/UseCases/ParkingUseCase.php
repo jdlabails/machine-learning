@@ -126,9 +126,9 @@ class ParkingUseCase
         }
 
         //On recompense l'horizontalité
-        if ($center >= Parking::HEIGHT_GOAL-10){
-            $this->rewards[$i][$j][$k] += self::REWARD_K3 * abs(cos($k * Car::TURN_ACTION_ANGLE));
-        }
+//        if ($center >= Parking::HEIGHT_GOAL-3){
+//            $this->rewards[$i][$j][$k] += self::REWARD_K3 * abs(cos($k * Car::TURN_ACTION_ANGLE));
+//        }
 //
 //        //On recompense la marche arriere pour le creneau
 //        if ($center >= Parking::HEIGHT- 2.3*Car::WIDTH && in_array($k, [1, 3, 5])){
@@ -191,7 +191,11 @@ class ParkingUseCase
         return false;
     }
 
-    //On passe d'un etat a un autre en faisant a
+    /**
+     * Make $action to the car
+     * @param int $action
+     * @return bool
+     */
     public function move(int $action)
     {
         $formerPosition = $this->car->getPosition();
@@ -212,7 +216,10 @@ class ParkingUseCase
         return false;
     }
 
-    // Action optimale à partir de s
+    /**
+     * get optimal move from s according Q
+     * @return int
+     */
     public function getBestMove()
     {
         $max = $this->getQ($this->car->getX(), $this->car->getY(), $this->car->getThetaIndex(), 0);
@@ -255,7 +262,6 @@ class ParkingUseCase
             }
 
             $test[$a] = $this->move($a);
-
         } while (!$test[$a]);//tt que mvt pas valide
 
         return $a;
@@ -268,7 +274,8 @@ class ParkingUseCase
         $progressBar->start();
         $progressBar->setRedrawFrequency(1);
         $progressBar->setMessage('');
-        $progressBar->setFormat(' %message% %current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% %memory:6s%');
+        $format = '%message% %current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% %memory:6s%';
+        $progressBar->setFormat($format);
 
         for ($time = 0; $time < $maxI; $time++) {
             $progressBar->advance();
@@ -277,7 +284,7 @@ class ParkingUseCase
             $i = 20;//rand(5, Parking::WIDTH - Car::LENGHT - 5);
             $j = 20;//rand(5, Parking::HEIGHT - Car::WIDTH - 15);
             $i = rand(5, Parking::WIDTH - Car::LENGHT - 5);
-            $j = rand(5, Parking::HEIGHT - Car::WIDTH - 15);
+            $j = rand(5, Parking::HEIGHT / 2);
             //echo "$i, $j \n\n";
 
             $this->car->setPosition($i, $j, 0, 0);
@@ -312,26 +319,32 @@ class ParkingUseCase
                     $this->car->getX(),
                     $this->car->getY(),
                     $this->car->getThetaIndex(),
-                    $this->getBestMove());
+                    $this->getBestMove()
+                );
                 $oldQ = $this->getQ($x, $y, $tIndex, $a);
 
-                $this->Q[round($x)][round($y)][$tIndex][$a] = $oldQ + $learningFactor * ($rewardNewPosition + $bestQNewPosition - $oldQ);
+                $this->Q[round($x)][round($y)][$tIndex][$a] =
+                    $oldQ + $learningFactor * ($rewardNewPosition + $bestQNewPosition - $oldQ);
 
                 $moves []= [round($x),round($y), $tIndex,$a];
-
-            } while (!$this->isParked() && $nbiter < 10000);
+            } while (!$this->isParked() && $nbiter < 20000);
 
             // stop loop if lost
-            if ($nbiter >= 10000) {
-                $progressBar->setMessage("<error>Too long for $i, $j</error> : " . json_encode($this->car->getPosition()) . PHP_EOL);
+            if ($nbiter >= 20000) {
+                $progressBar->setMessage("<error>Too long for $i, $j</error> : " .
+                    json_encode($this->car->getPosition()) . PHP_EOL);
             } else {
                 $centerPosition = $this->car->getCenterPosition();
-                $progressBar->setMessage("<info>$time - parked from $i, $j in $nbiter steps. x</info> : " . $centerPosition['x'] . ", y: " . $centerPosition['y'] . ", theta : " . $this->car->getTheta() . PHP_EOL);
+                $progressBar->setMessage("<info>$time - parked from $i, $j in $nbiter steps. x</info> : " .
+                    $centerPosition['x'] . ", y: " . $centerPosition['y'] . ", theta : " .
+                    $this->car->getTheta() . PHP_EOL);
 
-                // boost of last 20 moves - end of markov ? no, only learning take care of the past. learning is then reinforced again
-                for ($ii = count($moves)-1; $ii > count($moves) - 20; $ii--) {
+                // boost of last 20 moves - end of markov ? no, only learning take care of the past.
+                // learning is then reinforced again
+                for ($ii = count($moves)-1; $ii > count($moves) - 10; $ii--) {
                     //var_dump($moves[$ii]);
-                    $this->Q[$moves[$ii][0]][$moves[$ii][1]][$moves[$ii][2]][$moves[$ii][3]] +=  $ii - count($moves) + 20;
+                    $this->Q[$moves[$ii][0]][$moves[$ii][1]][$moves[$ii][2]][$moves[$ii][3]] +=
+                        $ii - count($moves) + 70;
                 }
             }
         }

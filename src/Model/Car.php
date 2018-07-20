@@ -1,7 +1,6 @@
 <?php
 namespace App\Model;
 
-
 class Car
 {
     const LENGHT = 50;
@@ -58,7 +57,6 @@ class Car
         }
 
         $this->theta = $this->thetaIndex * Car::TURN_ACTION_ANGLE;
-
     }
 
     //rotation de la voiture
