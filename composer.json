@@ -7,17 +7,21 @@
     "symfony/console": "^4.0",
     "symfony/flex": "^1.0",
     "symfony/framework-bundle": "^4.0",
+    "symfony/lock": "^4.0",
     "symfony/lts": "^4@dev",
     "symfony/orm-pack": "^1.0",
     "symfony/process": "^4.0",
-    "symfony/yaml": "^4.0",
-    "symfony/lock": "^4.0"
+    "symfony/twig-bundle": "^4.0",
+    "symfony/yaml": "^4.0"
   },
   "require-dev": {
+    "atoum/atoum": "^3.3",
+    "atoum/stubs": "^2.6",
+    "m6web/coke": "^2.2",
     "sensiolabs/security-checker": "^4.1",
     "symfony/dotenv": "^4.0",
     "symfony/var-dumper": "^4.0",
-    "m6web/coke": "^2.2"
+    "symfony/web-server-bundle": "^4.0"
   },
   "config": {
     "preferred-install": {

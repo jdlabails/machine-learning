@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Model\Car;
 use App\UseCases\ParkingUseCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
@@ -21,7 +22,7 @@ class MainCommand extends Command
             ->addArgument(
                 'nbLoop',
                 InputArgument::OPTIONAL,
-                'Learning deep, better if > 10000',
+                'Learning deep, better if < 10000',
                 1000
             );
     }
@@ -38,26 +39,50 @@ class MainCommand extends Command
             return 0;
         }
 
+
+//        echo (string)ParkingUseCase::theCarIsInTheGame(10,10,pi()/4);
+//        echo (int)ParkingUseCase::theCarIsInTheGame(20,20,0);
+//        die;
         //todo loop here about 20 times to get the best result
-        $output->writeln("Lets learn !");
+
+        $output->writeln([
+            '',
+            "Parking use case",
+            '********************************',
+        ]);
         $parking = new ParkingUseCase();
+
+        $output->writeln([
+            '',
+            "Learning",
+            '********************************',
+        ]);
+
         $parking->letsLearn($output, $input->getArgument('nbLoop'));
 
-        $output->writeln(['', "Lets see how to park :"]);
-        $parking->setCarPosition(30, 20, 0, 0);
+
+        $output->writeln([
+            '',
+            '********************************',
+            "Lets see how to park :",
+            '********************************',
+        ]);
+
         $nbMove = 0;
         $loopAvoid = 0;
-
+        $moves = [];
+        $positions = [];
         $badMoveAvoid = 0;
         $actions = [];
-        while (!$parking->isParked() && $nbMove < 2000) {
+        $parking->initCarPosition();
+        while (!$parking->isParked() && $nbMove < 10000) {
 
             // we try to avoid loop
-            $pos = $parking->getPosition();
+            $pos = $parking->getCarPosition();
             $action = $parking->getBestMove();
             if (isset($actions[$pos['X']][$pos['Y']][$pos['thetaIndex']][$action])) {
                 $loopAvoid++;
-                while ($action == $newAction = $parking->getActionByEgreedyPolicy(0)) {
+                while ($action == $newAction = $parking->getActionByEgreedyPolicy(10)) {
 
                 }
 
@@ -65,14 +90,24 @@ class MainCommand extends Command
             }
             $actions[$pos['X']][$pos['Y']][$pos['thetaIndex']][$action] = true;
 
-            //echo "Action $action ==> ".json_encode($parking->getPosition()).PHP_EOL;
+            //echo "Action $action ==> ".json_encode($parking->getCarPosition()).PHP_EOL;
             if (!$parking->move($action)) {
                 $badMoveAvoid++;
+            } else {
+//                echo "action : $action".PHP_EOL;
+//                print_r($parking->getCarPosition());
+                $moves[]=$action;
+                $positions[]=$parking->getCarPosition();
+                $nbMove++;
             }
-            $nbMove++;
         }
 
-        $output->writeln("$nbMove moves to get parked : " . json_encode($parking->getPosition()));
+        $fp = fopen(__DIR__.'/../../public/parkingMoves.js', 'w+');
+        fwrite($fp, 'var moves = '.json_encode($moves)."; \n");
+        fwrite($fp, 'var positions = '.json_encode($positions));
+        fclose($fp);
+
+        $output->writeln("$nbMove moves to get parked : " . json_encode($parking->getCarPosition()));
         $output->writeln('bad move : ' . $badMoveAvoid);
         $output->writeln('loop avoided : ' . $loopAvoid);
     }

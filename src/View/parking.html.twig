@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Parking trial</title>
+    <link rel="stylesheet" href="bootstrap.css">
+</head>
+<body>
+
+<img src="green-car.png" id="green-car" style="display: none">
+
+<div class="container-fluid">
+    <h1>Parking trial </h1>
+
+    <div class="row">
+        <div class="col-sm">
+            <canvas id="playGround"
+                    width="{{ constant('App\\Model\\Parking::WIDTH') }}"
+                    height="{{ constant('App\\Model\\Parking::HEIGHT') }}"
+                    style="border:1px solid #000000;">
+            </canvas>
+        </div>
+        <div class="col-sm">
+            <h4>Results</h4>
+            <ul>
+                <li>Nb moves : <span id="currentMove"></span> : <span id="nbMoves"></span></li>
+            </ul>
+            <h4>Options</h4>
+            <label>Move based on :</label>
+            <select id="playMode">
+                <option value="positions">Positions</option>
+                <option value="moves">Moves</option>
+            </select>
+            <h4>Corners Positions</h4>
+            <ul>
+                <li><span id="front-right"></span></li>
+                <li><span id="front-left"></span></li>
+                <li><span id="back-right"></span></li>
+                <li><span id="back-left"></span></li>
+                <li><span id="center-y"></span></li>
+            </ul>
+        </div>
+
+        <div class="col-sm">
+            <h4>Actions</h4>
+            <ul>
+                <li>Enter : play moves according your selection</li>
+                <li><- : play previous move according your selection</li>
+                <li>-> : play next move according your selection</li>
+                <li>0 : go forward</li>
+                <li>1 : go backward</li>
+                <li>2 : turn right forward</li>
+                <li>3 : turn left backward</li>
+                <li>4 : turn left forward</li>
+                <li>5 : turn right backward</li>
+            </ul>
+        </div>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    var turnFactor = {{ constant('App\\Model\\Car::TURN_FACTOR') }};
+    var leftCarPosition = {{ constant('App\\Model\\Car::INITIAL_POSITION_LEFT') }};
+    var topCarPosition = {{ constant('App\\Model\\Car::INITIAL_POSITION_TOP') }};
+
+    var turnValueRad = {{ constant('App\\Model\\Car::TURN_ACTION_ANGLE') }};
+    var turnValueDeg = 5;
+</script>
+
+<script type="text/javascript" src="fabric.min.js"></script>
+<script type="text/javascript" src="parkingMoves.js"></script>
+<script type="text/javascript" src="jquery-3.3.1.slim.min.js"></script>
+<script type="text/javascript" src="popper.min.js"></script>
+<script type="text/javascript" src="bootstrap.min.js"></script>
+<script type="text/javascript" src="parking-usecase.js"></script>
+
+</body>
+</html>

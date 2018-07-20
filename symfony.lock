@@ -1,4 +1,10 @@
 {
+    "atoum/atoum": {
+        "version": "3.3.0"
+    },
+    "atoum/stubs": {
+        "version": "2.6.0"
+    },
     "composer/ca-bundle": {
         "version": "1.1.1"
     },
@@ -70,9 +76,6 @@
     },
     "ocramius/proxy-manager": {
         "version": "2.1.1"
-    },
-    "phayes/geophp": {
-        "version": "1.2"
     },
     "psr/cache": {
         "version": "1.0.1"
@@ -167,6 +170,9 @@
     "symfony/orm-pack": {
         "version": "v1.0.5"
     },
+    "symfony/polyfill-ctype": {
+        "version": "v1.8.0"
+    },
     "symfony/polyfill-mbstring": {
         "version": "v1.8.0"
     },
@@ -185,11 +191,35 @@
             "ref": "cda8b550123383d25827705d05a42acf6819fe4e"
         }
     },
+    "symfony/twig-bridge": {
+        "version": "v4.0.9"
+    },
+    "symfony/twig-bundle": {
+        "version": "3.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "3.3",
+            "ref": "f75ac166398e107796ca94cc57fa1edaa06ec47f"
+        }
+    },
     "symfony/var-dumper": {
         "version": "v4.0.9"
     },
+    "symfony/web-server-bundle": {
+        "version": "3.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "3.3",
+            "ref": "dae9b39fd6717970be7601101ce5aa960bf53d9a"
+        }
+    },
     "symfony/yaml": {
         "version": "v4.0.9"
+    },
+    "twig/twig": {
+        "version": "v2.4.8"
     },
     "zendframework/zend-code": {
         "version": "3.3.0"
