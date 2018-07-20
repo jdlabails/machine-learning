@@ -1,0 +1,7 @@
+# Machine Learning playground
+
+* php bin/console server:start
+* php bin/console ml:l 500
+
+Go to http://127.0.0.1:8000/parking
+
