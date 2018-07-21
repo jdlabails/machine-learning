@@ -31,10 +31,13 @@ class ParkingUseCase
     /** @var  Car $car */
     private $car;
 
+    private $verbose;
 
-    public function __construct()
+
+    public function __construct($verbose = false)
     {
         $this->car = new Car();
+        $this->verbose = $verbose;
     }
 
     public function initCarPosition()
@@ -93,9 +96,9 @@ class ParkingUseCase
         }
 
         //rangé de voiture avec la place libre
-//        if ($y > Parking::PLACE_Y && $x > Parking::PLACE_X){
-//            return false;
-//        }
+        if ($y > Parking::PLACE_Y && $x > Parking::PLACE_X) {
+            return false;
+        }
 
         return true;
     }
@@ -120,7 +123,7 @@ class ParkingUseCase
             $this->rewards[$i][$j][$k] += self::REWARD_K2;//*$j/10;
         }
 
-        //On recompense le deplacement vers le bas, sauf au moment de se garer
+        //On recompense le deplacement vers le bas
         if ($center < Parking::HEIGHT_GOAL) {
             $this->rewards[$i][$j][$k] = self::REWARD_K1 / (1 + pow($j - Parking::HEIGHT_GOAL, 2));
         }
@@ -310,7 +313,7 @@ class ParkingUseCase
                 $tIndex = $this->car->getThetaIndex();
 
                 // new action by e-greedy policy
-                $a = $this->getActionByEgreedyPolicy(min(0.5, $time / $maxI)*100);
+                $a = $this->getActionByEgreedyPolicy(min(0.5, $time / $maxI) * 100);
                 // the car is now in a new position
 
                 // Q evolution by bellman equation
@@ -326,22 +329,27 @@ class ParkingUseCase
                 $this->Q[round($x)][round($y)][$tIndex][$a] =
                     $oldQ + $learningFactor * ($rewardNewPosition + $bestQNewPosition - $oldQ);
 
-                $moves []= [round($x),round($y), $tIndex,$a];
+                $moves [] = [round($x), round($y), $tIndex, $a];
             } while (!$this->isParked() && $nbiter < 20000);
 
             // stop loop if lost
             if ($nbiter >= 20000) {
-                $progressBar->setMessage("<error>Too long for $i, $j</error> : " .
-                    json_encode($this->car->getPosition()) . PHP_EOL);
+                if ($this->verbose) {
+                    $progressBar->setMessage("<error>Too long for $i, $j</error> : " .
+                        json_encode($this->car->getPosition()) . PHP_EOL);
+                }
+
             } else {
-                $centerPosition = $this->car->getCenterPosition();
-                $progressBar->setMessage("<info>$time - parked from $i, $j in $nbiter steps. x</info> : " .
-                    $centerPosition['x'] . ", y: " . $centerPosition['y'] . ", theta : " .
-                    $this->car->getTheta() . PHP_EOL);
+                if ($this->verbose) {
+                    $centerPosition = $this->car->getCenterPosition();
+                    $progressBar->setMessage("<info>$time - parked from $i, $j in $nbiter steps. x</info> : " .
+                        $centerPosition['x'] . ", y: " . $centerPosition['y'] . ", theta : " .
+                        $this->car->getTheta() . PHP_EOL);
+                }
 
                 // boost of last 20 moves - end of markov ? no, only learning take care of the past.
                 // learning is then reinforced again
-                for ($ii = count($moves)-1; $ii > count($moves) - 10; $ii--) {
+                for ($ii = count($moves) - 1; $ii > count($moves) - 10; $ii--) {
                     //var_dump($moves[$ii]);
                     $this->Q[$moves[$ii][0]][$moves[$ii][1]][$moves[$ii][2]][$moves[$ii][3]] +=
                         $ii - count($moves) + 70;
@@ -350,5 +358,64 @@ class ParkingUseCase
         }
 
         $progressBar->finish();
+    }
+
+    public function makeStandard(OutputInterface $output, $maxI = 100)
+    {
+        $progressBar = new ProgressBar($output, $maxI);
+        $progressBar->start();
+        $progressBar->setRedrawFrequency(1);
+        $progressBar->setMessage('');
+        $format = '%message% %current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% %memory:6s%';
+        $progressBar->setFormat($format);
+        $bestMoves = [];
+
+        for ($time = 0; $time < $maxI; $time++) {
+            $progressBar->advance();
+
+            $this->initCarPosition();
+
+            // counter strike
+            $nbiter = 0;
+            $moves = [];
+
+            do {
+                $nbiter++;
+
+                // Current state
+                $x = $this->car->getX();
+                $y = $this->car->getY();
+                $tIndex = $this->car->getThetaIndex();
+
+                // new action random
+                $a = $this->getActionByEgreedyPolicy(-1);
+                // the car is now in a new position
+
+                $moves [] = [round($x), round($y), $tIndex, $a];
+            } while (!$this->isParked() && $nbiter < 20000);
+
+            // stop loop if lost
+            if ($nbiter >= 20000) {
+                if ($this->verbose) {
+                    $progressBar->setMessage("<error>Too long for </error> : " .
+                        json_encode($this->car->getPosition()) . PHP_EOL);
+                }
+            } else {
+                if ($this->verbose) {
+                    $centerPosition = $this->car->getCenterPosition();
+                    $progressBar->setMessage("<info>$time - standard calculation - car parked in $nbiter steps. </info> " .
+                        " : " . $centerPosition['x'] . ", y: " . $centerPosition['y'] . ", theta : " .
+                        $this->car->getTheta() . PHP_EOL);
+                }
+
+                if ($time == 0 || count($bestMoves) > count($moves)) {
+                    $bestMoves = $moves;
+                }
+            }
+        }
+
+        $progressBar->finish();
+
+        return $bestMoves;
     }
 }

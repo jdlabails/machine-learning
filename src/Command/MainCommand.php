@@ -23,14 +23,11 @@ class MainCommand extends Command
                 'nbLoop',
                 InputArgument::OPTIONAL,
                 'Learning deep, better if < 10000',
-                1000
+                500
             );
     }
 
-    /**
-     * Launch by 6000 and 47 step reach
-     * Launch by 60000 and 86 step reach
-     */
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         if (!$this->lock()) {
@@ -39,18 +36,23 @@ class MainCommand extends Command
             return 0;
         }
 
-
-//        echo (string)ParkingUseCase::theCarIsInTheGame(10,10,pi()/4);
-//        echo (int)ParkingUseCase::theCarIsInTheGame(20,20,0);
-//        die;
-        //todo loop here about 20 times to get the best result
-
         $output->writeln([
             '',
             "Parking use case",
             '********************************',
         ]);
-        $parking = new ParkingUseCase();
+        $parking = new ParkingUseCase($output->isVerbose());
+
+
+        $output->writeln([
+            '',
+            "Standard building : ",
+        ]);
+        $standard = $parking->makeStandard($output, $input->getArgument('nbLoop')*2);
+        $output->writeln([
+            "Standard : ".count($standard),
+            '********************************',
+        ]);
 
         $output->writeln([
             '',
@@ -71,7 +73,7 @@ class MainCommand extends Command
         $bestMoves = [];
         $bestPositions = [];
 
-        for ($nbTry = 0; $nbTry < 10; $nbTry++) {
+        for ($nbTry = 0; $nbTry < 500; $nbTry++) {
             $nbMove = 0;
             $loopAvoid = 0;
             $moves = [];
@@ -100,7 +102,8 @@ class MainCommand extends Command
                     $nbMove++;
                 }
             }
-            $output->writeln($nbTry . " - " . count($moves)." moves to get parked");
+            $output->writeln($nbTry . " - " . count($moves) .
+                " moves to get parked ($badMoveAvoid bad move, $loopAvoid loops avoided");
 
             if ($nbTry == 0 || count($bestMoves) > count($moves)) {
                 $bestMoves = $moves;
@@ -108,13 +111,11 @@ class MainCommand extends Command
             }
         }
 
-        $fp = fopen(__DIR__.'/../../public/parkingMoves.js', 'w+');
-        fwrite($fp, 'var moves = '.json_encode($bestMoves)."; \n");
-        fwrite($fp, 'var positions = '.json_encode($bestPositions));
+        $fp = fopen(__DIR__ . '/../../public/parkingMoves.js', 'w+');
+        fwrite($fp, 'var moves = ' . json_encode($bestMoves) . "; \n");
+        fwrite($fp, 'var positions = ' . json_encode($bestPositions));
         fclose($fp);
 
-        $output->writeln(count($bestMoves)." moves to get parked");
-        $output->writeln('bad move : ' . $badMoveAvoid);
-        $output->writeln('loop avoided : ' . $loopAvoid);
+        $output->writeln(count($bestMoves) . " moves to get parked on visualization");
     }
 }
