@@ -270,7 +270,7 @@ class ParkingUseCase
         return $a;
     }
 
-    //learning process
+    //learning loop
     public function letsLearn(OutputInterface $output, $maxI = 100)
     {
         $progressBar = new ProgressBar($output, $maxI);

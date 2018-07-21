@@ -111,8 +111,8 @@ function setPosition(x, y, thetaIndex) {
         fill: 'rgba(0,200,0,0.5)'
     });
 
-    //canvas.add(car, parkedCars);
-    canvas.add(car);
+    canvas.add(car, parkedCars);
+    //canvas.add(car);
     canvas.renderAll();
 
     $('#nbMoves').html(moves.length);

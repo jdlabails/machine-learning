@@ -50,6 +50,7 @@ class MainCommand extends Command
         ]);
         $standard = $parking->makeStandard($output, $input->getArgument('nbLoop')*2);
         $output->writeln([
+            '',
             "Standard : ".count($standard),
             '********************************',
         ]);
