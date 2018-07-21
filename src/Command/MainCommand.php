@@ -48,10 +48,10 @@ class MainCommand extends Command
             '',
             "Standard building : ",
         ]);
-        $standard = $parking->makeStandard($output, $input->getArgument('nbLoop')*2);
+        $standard = $parking->makeStandard($output, $input->getArgument('nbLoop') * 2);
         $output->writeln([
             '',
-            "Standard : ".count($standard),
+            "Standard : " . count($standard),
             '********************************',
         ]);
 
@@ -82,13 +82,13 @@ class MainCommand extends Command
             $badMoveAvoid = 0;
             $actions = [];
             $parking->initCarPosition();
-            while (!$parking->isParked() && $nbMove < 10000) {
-                // we try to avoid loop
+            while (!$parking->isParked() && $nbMove < 1000) {
                 $pos = $parking->getCarPosition();
                 $action = $parking->getBestMove();
+                // we try to avoid loop
                 if (isset($actions[$pos['X']][$pos['Y']][$pos['thetaIndex']][$action])) {
                     $loopAvoid++;
-                    while ($action == $newAction = $parking->getActionByEgreedyPolicy(10)) {
+                    while ($action == $newAction = $parking->getActionByEgreedyPolicy(-1)) {
                     }
 
                     $action = $newAction;
@@ -103,8 +103,10 @@ class MainCommand extends Command
                     $nbMove++;
                 }
             }
-            $output->writeln($nbTry . " - " . count($moves) .
-                " moves to get parked ($badMoveAvoid bad move, $loopAvoid loops avoided");
+            if ($output->isVerbose()) {
+                $output->writeln($nbTry . " - " . count($moves) .
+                    " moves to get parked ($badMoveAvoid bad move, $loopAvoid loops avoided");
+            }
 
             if ($nbTry == 0 || count($bestMoves) > count($moves)) {
                 $bestMoves = $moves;

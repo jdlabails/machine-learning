@@ -22,9 +22,6 @@ class ParkingUseCase
     /** @$array $Q espace d'etats-actions double [][][][] */
     private $Q = [];
 
-    /** @$array $states espace des etats approximés possibles boolean[][][] */
-    private $state = [];
-
     /** @$array $rewards double [][] */
     private $rewards = [];
 
@@ -347,12 +344,12 @@ class ParkingUseCase
                         $this->car->getTheta() . PHP_EOL);
                 }
 
-                // boost of last 20 moves - end of markov ? no, only learning take care of the past.
+                // boost of last 10 moves - end of markov ? no, only learning take care of the past.
                 // learning is then reinforced again
                 for ($ii = count($moves) - 1; $ii > count($moves) - 10; $ii--) {
                     //var_dump($moves[$ii]);
                     $this->Q[$moves[$ii][0]][$moves[$ii][1]][$moves[$ii][2]][$moves[$ii][3]] +=
-                        $ii - count($moves) + 70;
+                        $ii - count($moves) + 270;
                 }
             }
         }
@@ -408,7 +405,7 @@ class ParkingUseCase
                         $this->car->getTheta() . PHP_EOL);
                 }
 
-                if ($time == 0 || count($bestMoves) > count($moves)) {
+                if (count($bestMoves) == 0 || count($bestMoves) > count($moves)) {
                     $bestMoves = $moves;
                 }
             }
